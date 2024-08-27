@@ -1,6 +1,5 @@
 from flask import render_template, request, jsonify
-from nlp.grammar_checker import check_grammar
-from nlp.language_model import analyze_sentence
+from nlp import check_grammar, analyze_sentence
 
 def init_routes(app, komoran):
     @app.route('/')
@@ -14,5 +13,7 @@ def init_routes(app, komoran):
         grammar_issues = check_grammar(analysis['pos_tagged'])
         return jsonify({
             'pos_tagged': analysis['pos_tagged'],
+            'morphs': analysis['morphs'],
+            'nouns': analysis['nouns'],
             'grammar_errors': grammar_issues
         })

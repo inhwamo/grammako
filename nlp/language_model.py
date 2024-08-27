@@ -23,17 +23,21 @@ def initialize_komoran():
     return Komoran()
 
 def analyze_sentence(komoran, sentence):
+    # POS tagging
     pos_tagged = komoran.pos(sentence)
     pos_tagged = [(str(word), str(tag)) for word, tag in pos_tagged]
     
+    # Morpheme analysis
     morphs = komoran.morphs(sentence)
     morphs = [str(morph) for morph in morphs]
     
-    nouns = komoran.nouns(sentence)
-    nouns = [str(noun) for noun in nouns]
+    # Noun extraction
+    tagged = komoran.pos(sentence)
+    nouns = [str(s) for s, t in tagged if str(t).startswith('NN')]
     
     return {
         'pos_tagged': pos_tagged,
         'morphs': morphs,
         'nouns': nouns
     }
+
