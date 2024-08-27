@@ -1,57 +1,39 @@
 import os
-import sys
-
-# Add the project root to sys.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from jvmpath import java_home
 import jpype
+from konlpy.utils import installpath
+from konlpy.tag import Komoran
 
-if not jpype.isJVMStarted():
-    try:
-        jpype.startJVM(convertStrings=False)
-    except Exception as e:
-        print(f"Error starting JVM: {e}")
-        sys.exit(1)
+def initialize_komoran():
+    java_home = os.environ.get('JAVA_HOME')
+    if not java_home:
+        raise ValueError("JAVA_HOME is not set")
 
-from konlpy.tag import Kkma
-import re
+    jvmpath = f"{java_home}/lib/server/libjvm.dylib"
+    if not os.path.exists(jvmpath):
+        raise FileNotFoundError(f"JVM not found at {jvmpath}")
 
-kkma = Kkma()
+    if not jpype.isJVMStarted():
+        try:
+            jpype.startJVM(jvmpath, "-Djava.class.path=" + os.environ.get('CLASSPATH', ''), convertStrings=False)
+            print("JVM started successfully")
+        except Exception as e:
+            print(f"Failed to start JVM: {e}")
+            raise
 
-def analyze_text(text):
-    # Tokenization and POS tagging
-    pos_tagged = kkma.pos(text)
+    return Komoran()
+
+def analyze_sentence(komoran, sentence):
+    pos_tagged = komoran.pos(sentence)
+    pos_tagged = [(str(word), str(tag)) for word, tag in pos_tagged]
     
-    # Sentence splitting
-    sentences = kkma.sentences(text)
+    morphs = komoran.morphs(sentence)
+    morphs = [str(morph) for morph in morphs]
     
-    # Grammar checking
-    grammar_errors = []
-    for i, sentence in enumerate(sentences):
-        # Check for subject-object-verb order
-        sov_check = check_sov_order(pos_tagged)
-        if sov_check:
-            grammar_errors.append(f"Sentence {i+1}: {sov_check}")
-        
-        # Check for particle usage
-        particle_check = check_particle_usage(pos_tagged)
-        if particle_check:
-            grammar_errors.append(f"Sentence {i+1}: {particle_check}")
-        
-        # Check for conjugation
-        conj_check = check_conjugation(pos_tagged)
-        if conj_check:
-            grammar_errors.append(f"Sentence {i+1}: {conj_check}")
-        
-        # Check for non-Korean words (except for common exceptions like API)
-        non_korean = check_non_korean(sentence)
-        if non_korean:
-            grammar_errors.append(f"Sentence {i+1}: Contains non-Korean word(s): {', '.join(non_korean)}")
+    nouns = komoran.nouns(sentence)
+    nouns = [str(noun) for noun in nouns]
     
     return {
         'pos_tagged': pos_tagged,
-        'grammar_errors': grammar_errors
+        'morphs': morphs,
+        'nouns': nouns
     }
-
-# ... (rest of the helper functions like check_sov_order, check_particle_usage, etc.)

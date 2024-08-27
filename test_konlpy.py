@@ -37,6 +37,37 @@ if not jpype.isJVMStarted():
 komoran = Komoran()
 print("KoNLPy Komoran initialized successfully")
 
+def check_grammar(sentence):
+    issues = []
+    pos_tagged = komoran.pos(sentence)
+    
+    # Convert Java strings to Python strings
+    pos_tagged = [(str(word), str(tag)) for word, tag in pos_tagged]
+
+    # Rule 1: Check if the sentence ends with a proper ending (EF or SF)
+    if pos_tagged[-1][1] not in ['EF', 'SF']:
+        issues.append("Sentence may be missing a proper ending.")
+
+    # Rule 2: Check for subject-object-verb order
+    has_subject = any(tag in ['NP', 'NNG', 'NNP'] for _, tag in pos_tagged)
+    has_object = any(tag == 'JKO' for _, tag in pos_tagged)  # Object particle
+    has_verb = any(tag.startswith('V') for _, tag in pos_tagged)
+    if has_verb and not has_subject:
+        issues.append("Sentence may be missing a subject.")
+    if has_object and not has_verb:
+        issues.append("Sentence has an object but may be missing a verb.")
+
+    # Rule 3: Check for repeated particles
+    particle_count = sum(1 for _, tag in pos_tagged if tag.startswith('J'))
+    if particle_count > len(set(tag for _, tag in pos_tagged if tag.startswith('J'))):
+        issues.append("There may be unnecessary repetition of particles.")
+
+    # Rule 4: Check for proper use of honorific forms
+    if any(word == '저' for word, _ in pos_tagged) and not any(tag == 'EP' for _, tag in pos_tagged):
+        issues.append("When using the humble form '저', consider using an honorific verb ending.")
+
+    return issues
+
 def analyze_sentence(sentence):
     print(f"\nAnalyzing: {sentence}")
     pos_tagged = komoran.pos(sentence)
@@ -65,7 +96,14 @@ test_sentences = [
 
 for sentence in test_sentences:
     analyze_sentence(sentence)
-
+    print("\nGrammar Check:")
+    issues = check_grammar(sentence)
+    if issues:
+        for issue in issues:
+            print(f"- {issue}")
+    else:
+        print("No grammar issues detected.")
+    print("\n" + "="*50)
 # NNP: Proper Noun
 # NNG: Common Noun
 # VV: Verb
