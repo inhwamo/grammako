@@ -22,6 +22,7 @@ def initialize_komoran():
 
     return Komoran()
 
+
 def analyze_sentence(komoran, sentence):
     # POS tagging
     pos_tagged = komoran.pos(sentence)
@@ -32,12 +33,23 @@ def analyze_sentence(komoran, sentence):
     morphs = [str(morph) for morph in morphs]
     
     # Noun extraction
-    tagged = komoran.pos(sentence)
-    nouns = [str(s) for s, t in tagged if str(t).startswith('NN')]
+    nouns = [str(s) for s, t in pos_tagged if str(t).startswith('NN')]
+    
+    # Phrase extraction
+    phrases = komoran.phrases(sentence)
+    
+    # Keyword extraction (based on noun frequency)
+    noun_freq = Counter(nouns)
+    keywords = noun_freq.most_common(5)  # Top 5 most frequent nouns
+    
+    # Sentence structure
+    sentence_structure = [tag for _, tag in pos_tagged]
     
     return {
         'pos_tagged': pos_tagged,
         'morphs': morphs,
-        'nouns': nouns
+        'nouns': nouns,
+        'phrases': phrases,
+        'keywords': keywords,
+        'sentence_structure': sentence_structure
     }
-
