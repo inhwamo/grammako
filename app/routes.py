@@ -1,5 +1,8 @@
 from flask import render_template, request, jsonify
-from nlp import check_grammar, analyze_sentence
+from nlp.language_model import analyze_sentence
+from nlp.grammar_checker import check_grammar
+import logging
+import traceback
 
 def init_routes(app, komoran):
     @app.route('/')
@@ -8,12 +11,31 @@ def init_routes(app, komoran):
 
     @app.route('/analyze', methods=['POST'])
     def analyze():
-        text = request.json['text']
-        analysis = analyze_sentence(komoran, text)
-        grammar_issues = check_grammar(analysis['pos_tagged'])
-        return jsonify({
-            'pos_tagged': analysis['pos_tagged'],
-            'morphs': analysis['morphs'],
-            'nouns': analysis['nouns'],
-            'grammar_errors': grammar_issues
-        })
+        try:
+            text = request.json['text']
+            logging.debug(f"Received text for analysis: {text[:50]}...")  # Log first 50 chars
+            
+            analysis = analyze_sentence(komoran, text)
+            logging.debug("Sentence analysis completed")
+            
+            grammar_issues = check_grammar(analysis['pos_tagged'])
+            logging.debug("Grammar check completed")
+            
+            result = {
+                'pos_tagged': analysis['pos_tagged'],
+                'morphs': analysis['morphs'],
+                'nouns': analysis['nouns'],
+                'keywords': analysis['keywords'],
+                'sentence_structure': analysis['sentence_structure'],
+                'grammar_errors': grammar_issues
+            }
+            
+            logging.debug("Analysis completed successfully")
+            return jsonify(result)
+        except Exception as e:
+            logging.error(f"Error during analysis: {str(e)}")
+            logging.error(traceback.format_exc())
+            return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+        
+
+        
