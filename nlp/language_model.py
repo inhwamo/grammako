@@ -4,6 +4,7 @@ import logging
 from konlpy.utils import installpath
 from konlpy.tag import Komoran
 from collections import Counter
+from .pos_tags import POS_TAG_TRANSLATIONS, SIMPLIFIED_POS_TAGS
 
 def initialize_komoran():
     java_home = os.environ.get('JAVA_HOME')
@@ -24,7 +25,6 @@ def initialize_komoran():
 
     return Komoran()
 
-
 def analyze_sentence(komoran, sentence):
     logging.debug(f"Analyzing sentence: {sentence[:50]}...")  # Log first 50 chars
     
@@ -32,41 +32,7 @@ def analyze_sentence(komoran, sentence):
         # POS tagging
         pos_tagged = komoran.pos(sentence)
         pos_tagged = [(str(word), str(tag)) for word, tag in pos_tagged]
-        
-        # Morpheme analysis
-        morphs = komoran.morphs(sentence)
-        morphs = [str(morph) for morph in morphs]
-
-                
-        # Custom noun extraction
-        nouns = [word for word, tag in pos_tagged if tag.startswith('NN')]
-
-        # Keyword extraction (based on noun frequency)
-        noun_freq = Counter(nouns)
-        keywords = [(str(word), count) for word, count in noun_freq.most_common(5)]  # Top 5 most frequent nouns
-        
-        # Sentence structure
-        sentence_structure = [str(tag) for _, tag in pos_tagged]
-        
-        return {
-            'pos_tagged': pos_tagged,
-            'morphs': morphs,
-            'nouns': nouns,
-            'keywords': keywords,
-            'sentence_structure': sentence_structure
-        }
-    except Exception as e:
-        logging.error(f"Error in analyze_sentence: {str(e)}", exc_info=True)
-        raise
-
-
-def analyze_sentence(komoran, sentence):
-    logging.debug(f"Analyzing sentence: {sentence[:50]}...")  # Log first 50 chars
-    
-    try:
-        # POS tagging
-        pos_tagged = komoran.pos(sentence)
-        pos_tagged = [(str(word), str(tag)) for word, tag in pos_tagged]
+        simplified_pos_tagged = [(word, SIMPLIFIED_POS_TAGS.get(tag, tag)) for word, tag in pos_tagged]
         
         # Morpheme analysis
         morphs = komoran.morphs(sentence)
@@ -81,9 +47,12 @@ def analyze_sentence(komoran, sentence):
         
         # Sentence structure
         sentence_structure = [tag for _, tag in pos_tagged]
+    
         
         return {
+            'original_text': sentence,
             'pos_tagged': pos_tagged,
+            'simplified_pos_tagged': simplified_pos_tagged,
             'morphs': morphs,
             'nouns': nouns,
             'keywords': keywords,
