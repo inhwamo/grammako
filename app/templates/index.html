@@ -8,6 +8,15 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/styles.css') }}"
     />
+    <style>
+      #highlighted-text span {
+        padding: 2px 0;
+        border-radius: 3px;
+      }
+      #highlighted-text span:hover {
+        opacity: 0.7;
+      }
+    </style>
   </head>
   <body>
     <h1>Korean Grammar Checker</h1>

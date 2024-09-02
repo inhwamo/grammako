@@ -18,10 +18,23 @@ document.getElementById("check-grammar").addEventListener("click", function () {
     .then((data) => {
       let resultHtml = "<h2>Analysis Results:</h2>";
 
+      // Display original text with highlighting
+      resultHtml += "<h3>Analyzed Text:</h3>";
+      resultHtml += "<p id='highlighted-text'></p>";
+
       // POS Tagged
       if (data.pos_tagged && data.pos_tagged.length > 0) {
         resultHtml += "<h3>POS Tagged:</h3><ul>";
         data.pos_tagged.forEach((item) => {
+          resultHtml += `<li>${item[0]} - ${item[1]}</li>`;
+        });
+        resultHtml += "</ul>";
+      }
+
+      // Simplified POS Tagged
+      if (data.simplified_pos_tagged && data.simplified_pos_tagged.length > 0) {
+        resultHtml += "<h3>Parts of Speech:</h3><ul>";
+        data.simplified_pos_tagged.forEach((item) => {
           resultHtml += `<li>${item[0]} - ${item[1]}</li>`;
         });
         resultHtml += "</ul>";
@@ -73,6 +86,13 @@ document.getElementById("check-grammar").addEventListener("click", function () {
       }
 
       document.getElementById("results").innerHTML = resultHtml;
+
+      // Highlight the text
+      highlightText(
+        data.original_text,
+        data.simplified_pos_tagged,
+        data.keywords
+      );
     })
     .catch((error) => {
       console.error("Error:", error);
@@ -88,3 +108,35 @@ document.getElementById("check-grammar").addEventListener("click", function () {
       ).innerHTML = `<p style="color: red;">${errorMessage}</p>`;
     });
 });
+
+function highlightText(text, posTagged, keywords) {
+  let highlightedText = text;
+  const colors = {
+    Noun: "#FFB3BA", // Light Pink
+    Verb: "#BAFFC9", // Light Green
+    Adjective: "#BAE1FF", // Light Blue
+    Adverb: "#FFFFBA", // Light Yellow
+    Particle: "#FFD700", // Gold
+    Ending: "#DDA0DD", // Plum
+  };
+
+  // Highlight POS tags
+  posTagged.forEach(([word, tag]) => {
+    const color = colors[tag] || "#FFFFFF"; // Default to white if tag not in colors
+    highlightedText = highlightedText.replace(
+      word,
+      `<span style="background-color: ${color};" title="${tag}">${word}</span>`
+    );
+  });
+
+  // Highlight top keyword
+  if (keywords.length > 0) {
+    const topKeyword = keywords[0][0];
+    highlightedText = highlightedText.replace(
+      new RegExp(topKeyword, "g"),
+      `<span style="border-bottom: 2px solid red;" title="Top Keyword">${topKeyword}</span>`
+    );
+  }
+
+  document.getElementById("highlighted-text").innerHTML = highlightedText;
+}
