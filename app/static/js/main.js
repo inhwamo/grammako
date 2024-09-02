@@ -1,5 +1,6 @@
 document.getElementById("check-grammar").addEventListener("click", function () {
   const text = document.getElementById("input-text").value;
+  console.log("Sending text for analysis:", text);
   fetch("/analyze", {
     method: "POST",
     headers: {
@@ -9,15 +10,11 @@ document.getElementById("check-grammar").addEventListener("click", function () {
   })
     .then((response) => {
       console.log("Response status:", response.status);
-      if (!response.ok) {
-        return response.json().then((err) => {
-          throw err;
-        });
-      }
+      console.log("Response headers:", response.headers);
       return response.json();
     })
     .then((data) => {
-      console.log("Response data:", data);
+      console.log("Parsed response data:", data);
       let resultHtml = "<h2>Analysis Results:</h2>";
 
       // Display top keywords
@@ -95,7 +92,7 @@ document.getElementById("check-grammar").addEventListener("click", function () {
       );
     })
     .catch((error) => {
-      console.error("Error:", error);
+      console.error("Error in fetch:", error);
       let errorMessage = "An error occurred while analyzing the text.";
       if (error.error) {
         errorMessage += ` Details: ${error.error}`;

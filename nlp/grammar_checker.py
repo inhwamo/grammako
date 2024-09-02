@@ -36,20 +36,25 @@ def check_honorific_consistency(pos_tagged):
     return None
 
 ## TODO: more honorific checks
+import logging ## is this necessary?
 
 def check_grammar(pos_tagged):
-    issues = []
-    checks = [
-        check_sov_order,
-        check_sentence_completeness,
-        check_proper_ending,
-        check_case_particles,
-        check_honorific_consistency
-    ]
+    try:
+        issues = []
+        checks = [
+            check_sov_order,
+            check_sentence_completeness,
+            check_proper_ending,
+            check_case_particles,
+            check_honorific_consistency
+        ]
 
-    for check in checks:
-        issue = check(pos_tagged)
-        if issue:
-            issues.append(issue)
+        for check in checks:
+            issue = check(pos_tagged)
+            if issue:
+                issues.append(issue)
 
-    return issues
+        return issues
+    except Exception as e:
+        logging.error(f"Error in grammar checking: {str(e)}")
+        return ["An error occurred during grammar checking"]
