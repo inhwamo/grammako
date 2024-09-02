@@ -15,6 +15,10 @@ document.getElementById("check-grammar").addEventListener("click", function () {
     })
     .then((data) => {
       console.log("Parsed response data:", data);
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       let resultHtml = "<h2>Analysis Results:</h2>";
 
       // Display top keywords
@@ -92,13 +96,10 @@ document.getElementById("check-grammar").addEventListener("click", function () {
       );
     })
     .catch((error) => {
-      console.error("Error in fetch:", error);
+      console.error("Error in fetch or processing:", error);
       let errorMessage = "An error occurred while analyzing the text.";
-      if (error.error) {
-        errorMessage += ` Details: ${error.error}`;
-      }
-      if (error.traceback) {
-        console.error("Traceback:", error.traceback);
+      if (error.message) {
+        errorMessage += ` Details: ${error.message}`;
       }
       document.getElementById(
         "results"
@@ -117,10 +118,16 @@ function highlightText(text, posTagged, keywords) {
     Ending: "#DDA0DD", // Plum
   };
 
+  // Function to escape special characters in a string for use in a regular expression
+  function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+  }
+
   // Highlight POS tags
   posTagged.forEach(([word, tag]) => {
     const color = colors[tag] || "#FFFFFF"; // Default to white if tag not in colors
-    const regex = new RegExp(`\\b${word}\\b`, "g"); // Match whole words globally
+    const escapedWord = escapeRegExp(word);
+    const regex = new RegExp(`\\b${escapedWord}\\b`, "g"); // Match whole words globally
     highlightedText = highlightedText.replace(
       regex,
       `<span style="background-color: ${color};" title="${tag}">${word}</span>`
@@ -130,7 +137,8 @@ function highlightText(text, posTagged, keywords) {
   // Highlight top keyword
   if (keywords.length > 0) {
     const topKeyword = keywords[0][0];
-    const regex = new RegExp(`\\b${topKeyword}\\b`, "g"); // Match whole words globally
+    const escapedTopKeyword = escapeRegExp(topKeyword);
+    const regex = new RegExp(`\\b${escapedTopKeyword}\\b`, "g"); // Match whole words globally
     highlightedText = highlightedText.replace(
       regex,
       `<span style="border-bottom: 2px solid red;" title="Top Keyword">${topKeyword}</span>`
