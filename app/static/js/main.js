@@ -8,6 +8,7 @@ document.getElementById("check-grammar").addEventListener("click", function () {
     body: JSON.stringify({ text: text }),
   })
     .then((response) => {
+      console.log("Response status:", response.status);
       if (!response.ok) {
         return response.json().then((err) => {
           throw err;
@@ -16,6 +17,7 @@ document.getElementById("check-grammar").addEventListener("click", function () {
       return response.json();
     })
     .then((data) => {
+      console.log("Response data:", data);
       let resultHtml = "<h2>Analysis Results:</h2>";
 
       // Display top keywords
