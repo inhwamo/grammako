@@ -38,3 +38,6 @@ def init_routes(app, komoran):
             logging.error(f"Error during analysis: {str(e)}")
             logging.error(traceback.format_exc())
             return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+        
+
+

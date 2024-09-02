@@ -18,47 +18,7 @@ document.getElementById("check-grammar").addEventListener("click", function () {
     .then((data) => {
       let resultHtml = "<h2>Analysis Results:</h2>";
 
-      // Display original text with highlighting
-      resultHtml += "<h3>Analyzed Text:</h3>";
-      resultHtml += "<p id='highlighted-text'></p>";
-
-      // POS Tagged
-      if (data.pos_tagged && data.pos_tagged.length > 0) {
-        resultHtml += "<h3>POS Tagged:</h3><ul>";
-        data.pos_tagged.forEach((item) => {
-          resultHtml += `<li>${item[0]} - ${item[1]}</li>`;
-        });
-        resultHtml += "</ul>";
-      }
-
-      // Simplified POS Tagged
-      if (data.simplified_pos_tagged && data.simplified_pos_tagged.length > 0) {
-        resultHtml += "<h3>Parts of Speech:</h3><ul>";
-        data.simplified_pos_tagged.forEach((item) => {
-          resultHtml += `<li>${item[0]} - ${item[1]}</li>`;
-        });
-        resultHtml += "</ul>";
-      }
-
-      // Morphemes
-      if (data.morphs && data.morphs.length > 0) {
-        resultHtml += "<h3>Morphemes:</h3><ul>";
-        data.morphs.forEach((morph) => {
-          resultHtml += `<li>${morph}</li>`;
-        });
-        resultHtml += "</ul>";
-      }
-
-      // Nouns
-      if (data.nouns && data.nouns.length > 0) {
-        resultHtml += "<h3>Nouns:</h3><ul>";
-        data.nouns.forEach((noun) => {
-          resultHtml += `<li>${noun}</li>`;
-        });
-        resultHtml += "</ul>";
-      }
-
-      // Keywords
+      // Display top keywords
       if (data.keywords && data.keywords.length > 0) {
         resultHtml += "<h3>Top Keywords:</h3><ul>";
         data.keywords.forEach(([keyword, count]) => {
@@ -67,12 +27,50 @@ document.getElementById("check-grammar").addEventListener("click", function () {
         resultHtml += "</ul>";
       }
 
-      // Sentence Structure
-      if (data.sentence_structure && data.sentence_structure.length > 0) {
-        resultHtml += "<h3>Sentence Structure:</h3><p>";
-        resultHtml += data.sentence_structure.join(" - ");
-        resultHtml += "</p>";
+      // Display original text with highlighting
+      resultHtml += "<h3>Analyzed Text:</h3>";
+      resultHtml += "<p id='highlighted-text'></p>";
+
+      // Create a table for POS Tagged, Simplified POS, Nouns, and Morphemes
+      resultHtml += "<table><tr>";
+
+      // POS Tagged
+      if (data.pos_tagged && data.pos_tagged.length > 0) {
+        resultHtml += "<td><h3>POS Tagged:</h3><ul>";
+        data.pos_tagged.forEach((item) => {
+          resultHtml += `<li>${item[0]} - ${item[1]}</li>`;
+        });
+        resultHtml += "</ul></td>";
       }
+
+      // Simplified POS Tagged
+      if (data.simplified_pos_tagged && data.simplified_pos_tagged.length > 0) {
+        resultHtml += "<td><h3>Parts of Speech:</h3><ul>";
+        data.simplified_pos_tagged.forEach((item) => {
+          resultHtml += `<li>${item[0]} - ${item[1]}</li>`;
+        });
+        resultHtml += "</ul></td>";
+      }
+
+      // Nouns
+      if (data.nouns && data.nouns.length > 0) {
+        resultHtml += "<td><h3>Nouns:</h3><ul>";
+        data.nouns.forEach((noun) => {
+          resultHtml += `<li>${noun}</li>`;
+        });
+        resultHtml += "</ul></td>";
+      }
+
+      // Morphemes
+      if (data.morphs && data.morphs.length > 0) {
+        resultHtml += "<td><h3>Morphemes:</h3><ul>";
+        data.morphs.forEach((morph) => {
+          resultHtml += `<li>${morph}</li>`;
+        });
+        resultHtml += "</ul></td>";
+      }
+
+      resultHtml += "</tr></table>";
 
       // Grammar Errors
       if (data.grammar_errors && data.grammar_errors.length > 0) {
@@ -123,8 +121,9 @@ function highlightText(text, posTagged, keywords) {
   // Highlight POS tags
   posTagged.forEach(([word, tag]) => {
     const color = colors[tag] || "#FFFFFF"; // Default to white if tag not in colors
+    const regex = new RegExp(`\\b${word}\\b`, "g"); // Match whole words globally
     highlightedText = highlightedText.replace(
-      word,
+      regex,
       `<span style="background-color: ${color};" title="${tag}">${word}</span>`
     );
   });
@@ -132,8 +131,9 @@ function highlightText(text, posTagged, keywords) {
   // Highlight top keyword
   if (keywords.length > 0) {
     const topKeyword = keywords[0][0];
+    const regex = new RegExp(`\\b${topKeyword}\\b`, "g"); // Match whole words globally
     highlightedText = highlightedText.replace(
-      new RegExp(topKeyword, "g"),
+      regex,
       `<span style="border-bottom: 2px solid red;" title="Top Keyword">${topKeyword}</span>`
     );
   }
