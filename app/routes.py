@@ -27,7 +27,9 @@ def init_routes(app, komoran):
                 'nouns': analysis['nouns'],
                 'keywords': analysis['keywords'],
                 'sentence_structure': analysis['sentence_structure'],
-                'grammar_errors': grammar_issues
+                'grammar_errors': grammar_issues,
+                'original_text': analysis['original_text'],
+                'simplified_pos_tagged': analysis['simplified_pos_tagged']
             }
             
             logging.debug("Analysis completed successfully")
@@ -36,6 +38,3 @@ def init_routes(app, komoran):
             logging.error(f"Error during analysis: {str(e)}")
             logging.error(traceback.format_exc())
             return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
-        
-
-        
