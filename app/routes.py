@@ -12,14 +12,15 @@ def init_routes(app, komoran):
     @app.route('/analyze', methods=['POST'])
     def analyze():
         try:
-            text = request.json['text']
-            logging.debug(f"Received text for analysis: {text[:50]}...")
+            data = request.json
+            if not data or 'text' not in data or not data['text']:
+                raise ValueError("No text provided for analysis")
+            
+            text = data['text']
+            logging.info(f"Analyzing text (first 50 chars): {text[:50]}...")
 
             analysis = analyze_sentence(komoran, text)
-            logging.debug("Sentence analysis completed")
-
             grammar_issues = check_grammar(analysis['pos_tagged'])
-            logging.debug("Grammar check completed")
 
             result = {
                 'pos_tagged': analysis['pos_tagged'],
@@ -32,9 +33,11 @@ def init_routes(app, komoran):
                 'simplified_pos_tagged': analysis['simplified_pos_tagged']
             }
 
-            logging.debug("Analysis completed successfully")
-            logging.debug(f"Returning result: {result}")
+            logging.info("Analysis completed successfully")
             return jsonify(result)
+        except ValueError as ve:
+            logging.error(f"ValueError: {str(ve)}")
+            return jsonify({'error': str(ve)}), 400
         except Exception as e:
             logging.error(f"Error during analysis: {str(e)}")
             logging.error(f"Traceback: {traceback.format_exc()}")

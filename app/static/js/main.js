@@ -1,6 +1,6 @@
 document.getElementById("check-grammar").addEventListener("click", function () {
   const text = document.getElementById("input-text").value;
-  console.log("Sending text for analysis:", text);
+  console.log("Analyzing text:", text.substring(0, 50) + "...");
   fetch("/analyze", {
     method: "POST",
     headers: {
@@ -8,16 +8,11 @@ document.getElementById("check-grammar").addEventListener("click", function () {
     },
     body: JSON.stringify({ text: text }),
   })
-    .then((response) => {
-      console.log("Response status:", response.status);
-      console.log("Response headers:", response.headers);
-      return response.json();
-    })
+    .then((response) => response.json())
     .then((data) => {
-      console.log("Parsed response data:", data);
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      console.log("Analysis completed");
+      console.log("Keywords:", data.keywords);
+      console.log("Grammar errors:", data.grammar_errors);
 
       let resultHtml = "<h2>Analysis Results:</h2>";
 
@@ -37,37 +32,37 @@ document.getElementById("check-grammar").addEventListener("click", function () {
       // Create a table for POS Tagged, Simplified POS, Nouns, and Morphemes
       resultHtml += "<table><tr>";
 
-      // POS Tagged
+      // POS Tagged (limited to first 10 items)
       if (data.pos_tagged && data.pos_tagged.length > 0) {
-        resultHtml += "<td><h3>POS Tagged:</h3><ul>";
-        data.pos_tagged.forEach((item) => {
+        resultHtml += "<td><h3>POS Tagged (first 10):</h3><ul>";
+        data.pos_tagged.slice(0, 10).forEach((item) => {
           resultHtml += `<li>${item[0]} - ${item[1]}</li>`;
         });
         resultHtml += "</ul></td>";
       }
 
-      // Simplified POS Tagged
+      // Simplified POS Tagged (limited to first 10 items)
       if (data.simplified_pos_tagged && data.simplified_pos_tagged.length > 0) {
-        resultHtml += "<td><h3>Parts of Speech:</h3><ul>";
-        data.simplified_pos_tagged.forEach((item) => {
+        resultHtml += "<td><h3>Parts of Speech (first 10):</h3><ul>";
+        data.simplified_pos_tagged.slice(0, 10).forEach((item) => {
           resultHtml += `<li>${item[0]} - ${item[1]}</li>`;
         });
         resultHtml += "</ul></td>";
       }
 
-      // Nouns
+      // Nouns (limited to first 10 items)
       if (data.nouns && data.nouns.length > 0) {
-        resultHtml += "<td><h3>Nouns:</h3><ul>";
-        data.nouns.forEach((noun) => {
+        resultHtml += "<td><h3>Nouns (first 10):</h3><ul>";
+        data.nouns.slice(0, 10).forEach((noun) => {
           resultHtml += `<li>${noun}</li>`;
         });
         resultHtml += "</ul></td>";
       }
 
-      // Morphemes
+      // Morphemes (limited to first 10 items)
       if (data.morphs && data.morphs.length > 0) {
-        resultHtml += "<td><h3>Morphemes:</h3><ul>";
-        data.morphs.forEach((morph) => {
+        resultHtml += "<td><h3>Morphemes (first 10):</h3><ul>";
+        data.morphs.slice(0, 10).forEach((morph) => {
           resultHtml += `<li>${morph}</li>`;
         });
         resultHtml += "</ul></td>";
@@ -88,13 +83,6 @@ document.getElementById("check-grammar").addEventListener("click", function () {
 
       document.getElementById("results").innerHTML = resultHtml;
 
-      // Add logging statement before calling highlightText
-      console.log(
-        "Calling highlightText with:",
-        data.original_text,
-        data.simplified_pos_tagged,
-        data.keywords
-      );
       highlightText(
         data.original_text,
         data.simplified_pos_tagged,
@@ -102,22 +90,15 @@ document.getElementById("check-grammar").addEventListener("click", function () {
       );
     })
     .catch((error) => {
-      console.error("Error in fetch or processing:", error);
-      let errorMessage = "An error occurred while analyzing the text.";
-      if (error.message) {
-        errorMessage += ` Details: ${error.message}`;
-      }
+      console.error("Error in analysis:", error.message);
       document.getElementById(
         "results"
-      ).innerHTML = `<p style="color: red;">${errorMessage}</p>`;
+      ).innerHTML = `<p style="color: red;">An error occurred during analysis.</p>`;
     });
 });
-function highlightText(text, posTagged, keywords) {
-  console.log("highlightText function called");
-  console.log("Text length:", text.length);
-  console.log("POS Tagged items:", posTagged.length);
-  console.log("Keywords:", keywords.map((k) => k[0]).join(", "));
 
+function highlightText(text, posTagged, keywords) {
+  console.log("Highlighting text...");
   let highlightedText = text;
   const colors = {
     Noun: "#FFB3BA",
@@ -134,33 +115,23 @@ function highlightText(text, posTagged, keywords) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
-  let replacementsMade = 0;
-
   // Sort posTagged by word length (descending) to ensure longer words are processed first
   posTagged.sort((a, b) => b[0].length - a[0].length);
 
   // Highlight POS tags
-  posTagged.forEach(([word, tag], index) => {
-    if (index < 5) console.log(`Processing: "${word}" (${tag})`);
+  posTagged.forEach(([word, tag]) => {
     const color = colors[tag] || colors.Unknown;
     const escapedWord = escapeRegExp(word);
     const regex = new RegExp(`(${escapedWord})(?![^<]*>|[^<>]*</)`, "g");
-    const oldHighlightedText = highlightedText;
     highlightedText = highlightedText.replace(
       regex,
       `<span style="background-color: ${color};" title="${tag}">$1</span>`
     );
-    if (oldHighlightedText !== highlightedText) {
-      replacementsMade++;
-    }
   });
-
-  console.log(`Total replacements made: ${replacementsMade}`);
 
   // Highlight top keyword
   if (keywords.length > 0) {
     const topKeyword = keywords[0][0];
-    console.log(`Highlighting top keyword: "${topKeyword}"`);
     const escapedTopKeyword = escapeRegExp(topKeyword);
     const regex = new RegExp(`(${escapedTopKeyword})(?![^<]*>|[^<>]*</)`, "g");
     highlightedText = highlightedText.replace(
@@ -169,6 +140,5 @@ function highlightText(text, posTagged, keywords) {
     );
   }
 
-  console.log("Highlighted text length:", highlightedText.length);
   document.getElementById("highlighted-text").innerHTML = highlightedText;
 }
