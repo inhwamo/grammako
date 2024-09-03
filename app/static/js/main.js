@@ -88,7 +88,13 @@ document.getElementById("check-grammar").addEventListener("click", function () {
 
       document.getElementById("results").innerHTML = resultHtml;
 
-      // Highlight the text
+      // Add logging statement before calling highlightText
+      console.log(
+        "Calling highlightText with:",
+        data.original_text,
+        data.simplified_pos_tagged,
+        data.keywords
+      );
       highlightText(
         data.original_text,
         data.simplified_pos_tagged,
@@ -106,44 +112,59 @@ document.getElementById("check-grammar").addEventListener("click", function () {
       ).innerHTML = `<p style="color: red;">${errorMessage}</p>`;
     });
 });
-
 function highlightText(text, posTagged, keywords) {
+  console.log("highlightText function called");
+  console.log("Text length:", text.length);
+  console.log("POS Tagged items:", posTagged.length);
+  console.log("Keywords:", keywords.map((k) => k[0]).join(", "));
+
   let highlightedText = text;
   const colors = {
-    Noun: "#FFB3BA", // Light Pink
-    Verb: "#BAFFC9", // Light Green
-    Adjective: "#BAE1FF", // Light Blue
-    Adverb: "#FFFFBA", // Light Yellow
-    Particle: "#FFD700", // Gold
-    Ending: "#DDA0DD", // Plum
+    Noun: "#FFB3BA",
+    Verb: "#BAFFC9",
+    Adjective: "#BAE1FF",
+    Adverb: "#FFFFBA",
+    Particle: "#FFD700",
+    Ending: "#DDA0DD",
   };
 
   // Function to escape special characters in a string for use in a regular expression
   function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
+  let replacementsMade = 0;
+
   // Highlight POS tags
-  posTagged.forEach(([word, tag]) => {
-    const color = colors[tag] || "#FFFFFF"; // Default to white if tag not in colors
+  posTagged.forEach(([word, tag], index) => {
+    if (index < 5) console.log(`Processing: "${word}" (${tag})`);
+    const color = colors[tag] || "#FFFFFF";
     const escapedWord = escapeRegExp(word);
-    const regex = new RegExp(`\\b${escapedWord}\\b`, "g"); // Match whole words globally
+    const regex = new RegExp(`${escapedWord}`, "g");
+    const oldHighlightedText = highlightedText;
     highlightedText = highlightedText.replace(
       regex,
       `<span style="background-color: ${color};" title="${tag}">${word}</span>`
     );
+    if (oldHighlightedText !== highlightedText) {
+      replacementsMade++;
+    }
   });
+
+  console.log(`Total replacements made: ${replacementsMade}`);
 
   // Highlight top keyword
   if (keywords.length > 0) {
     const topKeyword = keywords[0][0];
+    console.log(`Highlighting top keyword: "${topKeyword}"`);
     const escapedTopKeyword = escapeRegExp(topKeyword);
-    const regex = new RegExp(`\\b${escapedTopKeyword}\\b`, "g"); // Match whole words globally
+    const regex = new RegExp(`${escapedTopKeyword}`, "g");
     highlightedText = highlightedText.replace(
       regex,
       `<span style="border-bottom: 2px solid red;" title="Top Keyword">${topKeyword}</span>`
     );
   }
 
+  console.log("Highlighted text length:", highlightedText.length);
   document.getElementById("highlighted-text").innerHTML = highlightedText;
 }
