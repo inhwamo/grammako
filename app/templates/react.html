@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Korean Grammar Checker - React</title>
+    {% if manifest and 'main.css' in manifest %}
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='react-app/build/' + manifest['main.css']) }}"
+    />
+    {% endif %}
+  </head>
+  <body>
+    <div id="root"></div>
+    {% if manifest and 'main.js' in manifest %}
+    <script src="{{ url_for('static', filename='react-app/build/' + manifest['main.js']) }}"></script>
+    {% endif %}
+  </body>
+</html>

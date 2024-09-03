@@ -1,13 +1,46 @@
-from flask import render_template, request, jsonify
-from nlp.language_model import analyze_sentence
-from nlp.grammar_checker import check_grammar
+import json
+import os
+from flask import render_template, request, jsonify, send_from_directory, current_app
 import logging
 import traceback
+from nlp.language_model import analyze_sentence
+from nlp.grammar_checker import check_grammar
+
 
 def init_routes(app, komoran):
     @app.route('/')
     def index():
-        return render_template('index.html')
+        try:
+            print("Rendering index.html")
+            return render_template('index.html')
+        except Exception as e:
+            print(f"Error rendering index.html: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+
+    @app.route('/react')
+    def react():
+        try:
+            manifest_path = os.path.join(current_app.root_path, 'app', 'static', 'react-app', 'build', 'asset-manifest.json')
+            if not os.path.exists(manifest_path):
+                raise FileNotFoundError(f"Manifest file not found at {manifest_path}")
+            
+            with open(manifest_path) as f:
+                manifest = json.load(f)
+            
+            print("Manifest loaded:", manifest)  # Debug print
+            
+            if 'files' not in manifest:
+                raise KeyError("'files' key not found in manifest")
+            
+            return render_template('react.html', manifest=manifest['files'])
+        except Exception as e:
+            print(f"Error loading manifest: {str(e)}")
+            return f"Error loading React app: {str(e)}", 500
+
+    @app.route('/static/react-app/build/<path:filename>')
+    def serve_react_static(filename):
+        directory = os.path.join(current_app.root_path, '..', 'app', 'static', 'react-app', 'build')
+        return send_from_directory(directory, filename)
 
     @app.route('/analyze', methods=['POST'])
     def analyze():
@@ -35,10 +68,7 @@ def init_routes(app, komoran):
 
             logging.info("Analysis completed successfully")
             return jsonify(result)
-        except ValueError as ve:
-            logging.error(f"ValueError: {str(ve)}")
-            return jsonify({'error': str(ve)}), 400
         except Exception as e:
             logging.error(f"Error during analysis: {str(e)}")
-            logging.error(f"Traceback: {traceback.format_exc()}")
-            return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+            logging.error(traceback.format_exc())
+            return jsonify({'error': str(e)}), 500
