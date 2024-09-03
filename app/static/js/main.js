@@ -126,6 +126,7 @@ function highlightText(text, posTagged, keywords) {
     Adverb: "#FFFFBA",
     Particle: "#FFD700",
     Ending: "#DDA0DD",
+    Unknown: "#FFFFFF",
   };
 
   // Function to escape special characters in a string for use in a regular expression
@@ -135,16 +136,19 @@ function highlightText(text, posTagged, keywords) {
 
   let replacementsMade = 0;
 
+  // Sort posTagged by word length (descending) to ensure longer words are processed first
+  posTagged.sort((a, b) => b[0].length - a[0].length);
+
   // Highlight POS tags
   posTagged.forEach(([word, tag], index) => {
     if (index < 5) console.log(`Processing: "${word}" (${tag})`);
-    const color = colors[tag] || "#FFFFFF";
+    const color = colors[tag] || colors.Unknown;
     const escapedWord = escapeRegExp(word);
-    const regex = new RegExp(`${escapedWord}`, "g");
+    const regex = new RegExp(`(${escapedWord})(?![^<]*>|[^<>]*</)`, "g");
     const oldHighlightedText = highlightedText;
     highlightedText = highlightedText.replace(
       regex,
-      `<span style="background-color: ${color};" title="${tag}">${word}</span>`
+      `<span style="background-color: ${color};" title="${tag}">$1</span>`
     );
     if (oldHighlightedText !== highlightedText) {
       replacementsMade++;
@@ -158,10 +162,10 @@ function highlightText(text, posTagged, keywords) {
     const topKeyword = keywords[0][0];
     console.log(`Highlighting top keyword: "${topKeyword}"`);
     const escapedTopKeyword = escapeRegExp(topKeyword);
-    const regex = new RegExp(`${escapedTopKeyword}`, "g");
+    const regex = new RegExp(`(${escapedTopKeyword})(?![^<]*>|[^<>]*</)`, "g");
     highlightedText = highlightedText.replace(
       regex,
-      `<span style="border-bottom: 2px solid red;" title="Top Keyword">${topKeyword}</span>`
+      `<span style="border-bottom: 2px solid red;" title="Top Keyword">$1</span>`
     );
   }
 
