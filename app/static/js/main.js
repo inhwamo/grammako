@@ -32,37 +32,39 @@ document.getElementById("check-grammar").addEventListener("click", function () {
       // Create a table for POS Tagged, Simplified POS, Nouns, and Morphemes
       resultHtml += "<table><tr>";
 
-      // POS Tagged (limited to first 10 items)
+      const LIMIT = Infinity; // Set to Infinity to include all items
+
+      // POS Tagged
       if (data.pos_tagged && data.pos_tagged.length > 0) {
-        resultHtml += "<td><h3>POS Tagged (first 10):</h3><ul>";
-        data.pos_tagged.slice(0, 10).forEach((item) => {
+        resultHtml += "<td><h3>POS Tagged:</h3><ul>";
+        data.pos_tagged.slice(0, LIMIT).forEach((item) => {
           resultHtml += `<li>${item[0]} - ${item[1]}</li>`;
         });
         resultHtml += "</ul></td>";
       }
 
-      // Simplified POS Tagged (limited to first 10 items)
+      // Simplified POS Tagged
       if (data.simplified_pos_tagged && data.simplified_pos_tagged.length > 0) {
-        resultHtml += "<td><h3>Parts of Speech (first 10):</h3><ul>";
-        data.simplified_pos_tagged.slice(0, 10).forEach((item) => {
+        resultHtml += "<td><h3>Parts of Speech:</h3><ul>";
+        data.simplified_pos_tagged.slice(0, LIMIT).forEach((item) => {
           resultHtml += `<li>${item[0]} - ${item[1]}</li>`;
         });
         resultHtml += "</ul></td>";
       }
 
-      // Nouns (limited to first 10 items)
+      // Nouns
       if (data.nouns && data.nouns.length > 0) {
-        resultHtml += "<td><h3>Nouns (first 10):</h3><ul>";
-        data.nouns.slice(0, 10).forEach((noun) => {
+        resultHtml += "<td><h3>Nouns:</h3><ul>";
+        data.nouns.slice(0, LIMIT).forEach((noun) => {
           resultHtml += `<li>${noun}</li>`;
         });
         resultHtml += "</ul></td>";
       }
 
-      // Morphemes (limited to first 10 items)
+      // Morphemes
       if (data.morphs && data.morphs.length > 0) {
-        resultHtml += "<td><h3>Morphemes (first 10):</h3><ul>";
-        data.morphs.slice(0, 10).forEach((morph) => {
+        resultHtml += "<td><h3>Morphemes:</h3><ul>";
+        data.morphs.slice(0, LIMIT).forEach((morph) => {
           resultHtml += `<li>${morph}</li>`;
         });
         resultHtml += "</ul></td>";
