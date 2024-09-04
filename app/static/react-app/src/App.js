@@ -198,7 +198,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Korean Grammar Checker</h1>
+      <h1>Korean Grammar Checker - Test</h1>
       <div className="input-container">
         <textarea
           value={text}

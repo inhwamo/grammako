@@ -3,6 +3,7 @@ body {
   line-height: 1.6;
   margin: 0;
   padding: 20px;
+  background-color: #fdf0d5; /* New background color */
 }
 #highlighted-text span {
   padding: 2px 0;
