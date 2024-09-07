@@ -68,10 +68,13 @@ def analyze_sentence(komoran, sentence):
 
 def chunk_sentence(pos_tagged):
     grammar = """
-    NP: {<N.*>*<Suffix>?}   # Noun phrase
-    VP: {<V.*>*}            # Verb phrase
-    AP: {<A.*>*}            # Adjective phrase
-    SP: {<NP><Josa>?}       # Subject phrase
+    NP: {<N.*>+}                            # Noun phrase
+    VP: {<V.*>+<E.*>*}                      # Verb phrase
+    AP: {<MA.*>+}                           # Adverb phrase
+    SP: {<NP><JKS|JX>}                      # Subject phrase
+    OP: {<NP><JKO>}                         # Object phrase
+    ADP: {<NP><JKB>}                        # Adverbial phrase
+    PP: {<NP><JK.*>}                        # Postpositional phrase (catch-all)
     """
     parser = nltk.RegexpParser(grammar)
     tree = parser.parse(pos_tagged)
@@ -79,8 +82,11 @@ def chunk_sentence(pos_tagged):
     chunks = {
         'noun_phrases': [],
         'verb_phrases': [],
-        'adjective_phrases': [],
-        'subject_phrases': []
+        'adverb_phrases': [],
+        'subject_phrases': [],
+        'object_phrases': [],
+        'adverbial_phrases': [],
+        'postpositional_phrases': []
     }
     
     for subtree in tree.subtrees():
@@ -89,8 +95,14 @@ def chunk_sentence(pos_tagged):
         elif subtree.label() == 'VP':
             chunks['verb_phrases'].append(' '.join(word for word, tag in subtree.leaves()))
         elif subtree.label() == 'AP':
-            chunks['adjective_phrases'].append(' '.join(word for word, tag in subtree.leaves()))
+            chunks['adverb_phrases'].append(' '.join(word for word, tag in subtree.leaves()))
         elif subtree.label() == 'SP':
             chunks['subject_phrases'].append(' '.join(word for word, tag in subtree.leaves()))
+        elif subtree.label() == 'OP':
+            chunks['object_phrases'].append(' '.join(word for word, tag in subtree.leaves()))
+        elif subtree.label() == 'ADP':
+            chunks['adverbial_phrases'].append(' '.join(word for word, tag in subtree.leaves()))
+        elif subtree.label() == 'PP':
+            chunks['postpositional_phrases'].append(' '.join(word for word, tag in subtree.leaves()))
     
     return chunks
