@@ -5,6 +5,7 @@ from konlpy.utils import installpath
 from konlpy.tag import Komoran
 from collections import Counter
 from .pos_tags import POS_TAG_TRANSLATIONS, SIMPLIFIED_POS_TAGS
+import nltk
 
 def initialize_komoran():
     java_home = os.environ.get('JAVA_HOME')
@@ -47,7 +48,9 @@ def analyze_sentence(komoran, sentence):
         
         # Sentence structure
         sentence_structure = [tag for _, tag in pos_tagged]
-    
+        
+        # Phrasal Chunking
+        chunks = chunk_sentence(pos_tagged)
         
         return {
             'original_text': sentence,
@@ -56,8 +59,38 @@ def analyze_sentence(komoran, sentence):
             'morphs': morphs,
             'nouns': nouns,
             'keywords': keywords,
-            'sentence_structure': sentence_structure
+            'sentence_structure': sentence_structure,
+            'chunks': chunks
         }
     except Exception as e:
         logging.error(f"Error in analyze_sentence: {str(e)}", exc_info=True)
         raise
+
+def chunk_sentence(pos_tagged):
+    grammar = """
+    NP: {<N.*>*<Suffix>?}   # Noun phrase
+    VP: {<V.*>*}            # Verb phrase
+    AP: {<A.*>*}            # Adjective phrase
+    SP: {<NP><Josa>?}       # Subject phrase
+    """
+    parser = nltk.RegexpParser(grammar)
+    tree = parser.parse(pos_tagged)
+    
+    chunks = {
+        'noun_phrases': [],
+        'verb_phrases': [],
+        'adjective_phrases': [],
+        'subject_phrases': []
+    }
+    
+    for subtree in tree.subtrees():
+        if subtree.label() == 'NP':
+            chunks['noun_phrases'].append(' '.join(word for word, tag in subtree.leaves()))
+        elif subtree.label() == 'VP':
+            chunks['verb_phrases'].append(' '.join(word for word, tag in subtree.leaves()))
+        elif subtree.label() == 'AP':
+            chunks['adjective_phrases'].append(' '.join(word for word, tag in subtree.leaves()))
+        elif subtree.label() == 'SP':
+            chunks['subject_phrases'].append(' '.join(word for word, tag in subtree.leaves()))
+    
+    return chunks

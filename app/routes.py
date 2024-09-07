@@ -6,7 +6,6 @@ import traceback
 from nlp.language_model import analyze_sentence
 from nlp.grammar_checker import check_grammar
 
-
 def init_routes(app, komoran):
     @app.route('/')
     def index():
@@ -63,7 +62,8 @@ def init_routes(app, komoran):
                 'sentence_structure': analysis['sentence_structure'],
                 'grammar_errors': grammar_issues,
                 'original_text': analysis['original_text'],
-                'simplified_pos_tagged': analysis['simplified_pos_tagged']
+                'simplified_pos_tagged': analysis['simplified_pos_tagged'],
+                'chunks': analysis['chunks']
             }
 
             logging.info("Analysis completed successfully")
