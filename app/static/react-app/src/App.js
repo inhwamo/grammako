@@ -35,7 +35,7 @@ function App() {
     console.log("Highlighting text...");
     let highlightedText = text;
     const colors = {
-      Noun: "#FFB3BA",
+      Noun: "#FFCCCB",
       Verb: "#BAFFC9",
       Adjective: "#BAE1FF",
       Adverb: "#FFFFBA",
