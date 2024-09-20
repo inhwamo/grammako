@@ -39,7 +39,7 @@ def analyze_sentence(komoran, sentence):
         morphs = komoran.morphs(sentence)
         morphs = [str(morph) for morph in morphs]
         
-        # Custom noun extraction
+        # Noun extraction
         nouns = [word for word, tag in pos_tagged if tag.startswith('NN')]
         
         # Keyword extraction (based on noun frequency)
