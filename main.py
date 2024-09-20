@@ -16,12 +16,10 @@ from nlp import set_classpath, initialize_komoran
 app = Flask(__name__, template_folder='app/templates', static_folder='app/static')
 
 try:
-    # Initialize KoNLPy
     set_classpath()
     komoran = initialize_komoran()
     logging.info("KoNLPy initialized successfully")
 
-    # Initialize routes
     init_routes(app, komoran)
     logging.info("Routes initialized successfully")
 except Exception as e:
