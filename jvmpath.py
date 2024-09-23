@@ -13,6 +13,3 @@ if not java_home:
     raise ValueError("JAVA_HOME is not set and couldn't be determined automatically.")
 
 print(f"JAVA_HOME: {java_home}")
-
-# We're not setting jvmpath directly anymore
-# jpype will use JAVA_HOME to find the JVM
